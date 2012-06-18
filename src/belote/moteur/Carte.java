@@ -1,19 +1,12 @@
 package belote.moteur;
 
-import java.io.Serializable;
-import java.util.Scanner;
-
-import exception.IPException;
-
 /**
  * Une carte possede :
  * - une valeur (sept, huit, neuf, dix, valet, dame, roi, as) ;
  * - une couleur (coeur, pique, carreau, trefle).
  */
-public class Carte implements Serializable
+public class Carte
 {
-	private static final long serialVersionUID = 42;
-
 	/**
 	 * La couleur.
 	 */
@@ -23,23 +16,14 @@ public class Carte implements Serializable
 	 * La valeur.
 	 */
 	private Valeur valeur;
-	
-	/**
-	 * Construit une dame de coeur
-	 */
-	public Carte()
-	{
-		valeur = Valeur.DAME;
-		couleur = Couleur.COEUR;
-	}
-	
+
 	/**
 	 * Construit une carte.
 	 */
 	public Carte(Valeur val, Couleur coul)
 	{
-		if (val == null) throw new IPException(1);
-		if (coul == null) throw new IPException(2);
+		if (val == null) throw new NullPointerException();
+		if (coul == null) throw new NullPointerException();
 		valeur = val;		
 		couleur = coul;
 	}
@@ -49,10 +33,9 @@ public class Carte implements Serializable
 	 */
 	public Carte(String carte)
 	{
-		Scanner scan = new Scanner(carte);
-		valeur = Valeur.valueOf(scan.next().toUpperCase());
-		scan.next();
-		couleur = Couleur.valueOf(scan.next().toUpperCase());
+		String[] str = carte.split(" de ");
+		valeur = Valeur.valueOf(str[0].toUpperCase());
+		couleur = Couleur.valueOf(str[1].toUpperCase());
 	}
 	
 	/**
@@ -74,7 +57,7 @@ public class Carte implements Serializable
 	/**
 	 * Retourne la valeur de la carte sous forme d'entier, c'est a dire la 
 	 * "force", le nombre de points de cette carte, en prennant en compte 
-	 * la couleur de l'atout
+	 * la couleur de l'atout.
 	 */
 	public int getValeur(Couleur atout)
 	{
@@ -95,6 +78,43 @@ public class Carte implements Serializable
 	}
 	
 	/**
+	 * Donne le numero d'ordre de la carte.
+	 * pour un atout, l'ordre est : V 9 A 10 R D 8 7
+	 * pour un non-atout, c'est   : A 10 R D V 9 8 7
+	 */
+	public int getOrdre(Couleur atout)
+	{
+		if (couleur.equals(atout))
+		{
+			switch (valeur)
+			{
+			case VALET : return 7;
+			case NEUF  : return 6;
+			case AS    : return 5;
+			case DIX   : return 4;
+			case ROI   : return 3;
+			case DAME  : return 2;
+			case HUIT  : return 1;
+			default  : return 0;
+			}
+		}
+		else
+		{
+			switch (valeur)
+			{
+			case VALET : return 3;
+			case NEUF  : return 2;
+			case AS    : return 7;
+			case DIX   : return 6;
+			case ROI   : return 5;
+			case DAME  : return 4;
+			case HUIT  : return 1;
+			default  : return 0;
+			}
+		}
+	}
+	
+	/**
 	 * Verifie si la carte est la plus forte en prennant en compte l'atout et 
 	 * le pli courant
 	 */
@@ -112,9 +132,8 @@ public class Carte implements Serializable
 		// inversement
 		if (couleur != couleurPli && carte.couleur == couleurPli) return false;
 		
-		// sinon on compare les points
-		if (getValeur(atout) > carte.getValeur(atout)) return true;
-		else return false;
+		// sinon on compare les ordres
+		return (getOrdre(atout) > carte.getOrdre(atout));
 	}
 
 	/**
@@ -124,7 +143,7 @@ public class Carte implements Serializable
 	{
 		return ("" + valeur + " de " + couleur).toLowerCase();
 	}
-	
+
 	public int hashCode()
 	{
 		final int prime = 31;

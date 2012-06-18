@@ -28,13 +28,8 @@ public class InputOutput
 	{
 		joueurs.remove(joueur);
 	}
-	
-	public int getNbJoueurs()
-	{
-		return joueurs.size();
-	}
-	
-	public void init()
+
+	public void majDebutPartie()
 	{
 		for (Vue vue : joueurs)
 			vue.init();
@@ -85,7 +80,7 @@ public class InputOutput
 			vue.majJoueurJoueCarte(numJoueur, ("" + carte).toLowerCase());
 	}
 
-	public void majPli(int numPli)
+	public void majDebutPli(int numPli)
 	{
 		for (Vue vue : joueurs)
 			vue.majPli(numPli);

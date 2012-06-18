@@ -2,27 +2,26 @@ package belote.moteur;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import exception.BUException;
 import belote.ihm.Vue;
 
 /**
  * Controleur de l'application Belote.
  * C'est lui qui s'occupe de gerer les differents elements de la partie.
  */
-public class Belote {
-	
+public class Belote
+{
 	/**
-	 * Les joueurs (4).
+	 * Les joueurs.
 	 */
 	private ArrayList<Joueur> joueurs;
 	
 	/**
-	 * Le paquet de carte.
+	 * Le paquet de cartes.
 	 */
 	private PaquetCartes paquet;
 	
 	/**
-	 * La couleur de l'atout.
+	 * La couleur de l'atout de la partie en cours.
 	 */
 	private Couleur atout;
 	
@@ -37,40 +36,29 @@ public class Belote {
 	private Joueur vainqueurPli;
 
 	/**
-	 * Les cartes deposees sur la table (index par joueur)
+	 * Les cartes deposees sur la table.
 	 */
 	private HashMap<Joueur, Carte> table;
 	
 	/**
-	 * Entrees/Sorties
+	 * Entrees/Sorties.
 	 */
 	private InputOutput io;
 	
 	/**
-	 * Construit le controleur qui va attendre l'arrivée des 4 joueurs
+	 * Construit le controleur.
 	 */
 	public Belote()
 	{
-		// Initialisation des entrees/sorties
 		io = new InputOutput();
-
-		// Initialisation des joueurs
 		joueurs = new ArrayList<Joueur>();
-		
-		// Creation du paquet
 		paquet = new PaquetCartes();
-		
-		// Definition explicite de l'atout
 		atout = null;
-		
-		// Definition explicite de la couleur et du vainqueur du pli
 		couleurPli = null;
 		vainqueurPli = null;
-		
-		// Initialisation des cartes sur la table
 		table = new HashMap<Joueur, Carte>();
 	}
-	
+
 	/**
 	 * Ajoute un joueur a la partie
 	 */
@@ -109,36 +97,46 @@ public class Belote {
 	 */
 	public void start()
 	{
-		if (io.getNbJoueurs() != 4)
-			throw new BUException("La belote se joue a 4 joueurs !");
+		if (joueurs.size() != 4)
+			throw new RuntimeException("La belote se joue a 4 joueurs !");
+		
+		// remet toutes les cartes sur la table dans le paquet
+		paquet.addAll(table.values());
+		table.clear();
 		
 		do {
-			raz();
+			io.majDebutPartie();
+			// remet toutes les cartes des joueurs dans le paquet
+			for (Joueur j : joueurs)
+			{
+				paquet.addAll(j.getMain());
+				paquet.addAll(j.getCartesGagnees());
+				j.getMain().clear();
+				j.getCartesGagnees().clear();
+			}
 			paquet.melanger();
 		} while (!distribution());
 		
 		// Initialisation du premier joueur
+		int numVainqueurPli = 0;
 		vainqueurPli = joueurs.get(0);
 		
 		for (int i = 1 ; i <= 8 ; i++)
 		{
-			io.majPli(i);
-			table.clear();
-			couleurPli = null;
-			int numVainqueurPli = vainqueurPli.getNumero();
-			vainqueurPli = null;
+			io.majDebutPli(i);
 			tourDeTable(numVainqueurPli);
-			io.majDernierPli(table.values());
-			io.majVainqueurPli(vainqueurPli.getNumero());
-			vainqueurPli.addCartesGagnees(table.values());
-			io.majJoueurGagnePoints(vainqueurPli.getNumero(), getPointsSurTable());
+			numVainqueurPli = vainqueurPli.getNumero();
+			io.majVainqueurPli(numVainqueurPli);
+			io.majJoueurGagnePoints(numVainqueurPli, getPointsSurTable());
+			vainqueurPli.getCartesGagnees().addAll(table.values());
+			table.clear();
 		}
 		
 		// dix de der
-		io.majJoueurGagnePoints(vainqueurPli.getNumero(), 10);
+		io.majJoueurGagnePoints(numVainqueurPli, 10);
 		
-		int[] numVainqueurs = getVainqueursPartie();
-		io.majVainqueursPartie(numVainqueurs[0], numVainqueurs[1]);
+		int[] numVainqueursPartie = getVainqueursPartie();
+		io.majVainqueursPartie(numVainqueursPartie[0], numVainqueursPartie[1]);
 	}
 
 	/**
@@ -147,6 +145,8 @@ public class Belote {
 	 */
 	private void tourDeTable(int numVainqueurPliPrecedent)
 	{
+		couleurPli = null;
+		vainqueurPli = null;
 		for (int i = 4 ; i > 0 ; i--)
 		{
 			Joueur joueur = joueurs.get((numVainqueurPliPrecedent + i) % 4);
@@ -171,7 +171,7 @@ public class Belote {
 				vainqueurPli = joueur;
 			}
 			
-			joueur.subCarteMain(carte);
+			joueur.getMain().remove(carte);
 			table.put(joueur, carte);
 			io.majJoueurJoueCarte(joueur.getNumero(), carte);
 		}
@@ -208,8 +208,8 @@ public class Belote {
 	/**
 	 * Verifie si la carte a poser est valide
 	 */
-	private boolean validiteCarte(Carte carte, Joueur joueur) {
-		
+	private boolean validiteCarte(Carte carte, Joueur joueur)
+	{	
 		// carte nulle
 		if (carte == null) return false;
 		
@@ -236,49 +236,10 @@ public class Belote {
 		// sinon si il avait une carte de la couleur de l'atout -> X
 		if (joueur.possedeCouleurEnMain(atout)) return false;
 		
+		// TODO : monter a l'atout / surcoupe
+		
 		// sinon il peut jouer ce qu'il veut
 		return true;
-		
-
-		/*
-		if (couleurPli.equals(atout)) {
-			if (!joueur.possedeCouleur(atout))
-				return true;
-			if (!joueur.possedeCarteSuperieure(carteDominante, atout) && carte.getCouleur().equals(atout))
-				return true;
-		}
-		else {
-			if (carte.getCouleur().equals(couleurPli))
-				return true;
-			if (!joueur.possedeCouleur(couleurPli)) {
-				if (!joueur.possedeCouleur(atout))
-					return true;
-				if (!carteDominante.getCouleur().equals(atout))
-					return true;
-				if (carte.getValeur(atout) > carteDominante.getValeur(atout))
-					return true;
-			}
-		}
-		return false;
-		*/
-	}
-
-	/**
-	 * Remise a zero : remet toutes les cartes des joueurs, des equipes
-	 * et de la table dans le paquet
-	 */
-	private void raz()
-	{
-		io.init();
-		for (Joueur j : joueurs)
-		{
-			paquet.addAll(j.getMain());
-			paquet.addAll(j.getCartesGagnees());
-			j.getMain().clear();
-			j.getCartesGagnees().clear();
-		}
-		paquet.addAll(table.values());
-		table.clear();
 	}
 
 	/**
@@ -288,16 +249,18 @@ public class Belote {
 	private boolean distribution()
 	{
 		// distribue 3 cartes a chacun des joueurs
-		for(Joueur j : joueurs) {
-			j.addCartesMain(paquet.piocher(3));
-			io.majJoueurGagneCartesAnonyme(j.getNumero(), paquet.piocher(3));
+		for (int i = 3 ; i >= 0 ; i--)
+		{
+			joueurs.get(i).getMain().addAll(paquet.piocher(3));
+			io.majJoueurGagneCartesAnonyme(joueurs.get(i).getNumero(), paquet.piocher(3));
 			paquet.retirer(3);
 		}
 
 		// distribue 2 cartes a chacun des joueurs
-		for(Joueur j : joueurs) {
-			j.addCartesMain(paquet.piocher(2));
-			io.majJoueurGagneCartesAnonyme(j.getNumero(), paquet.piocher(2));
+		for (int i = 3 ; i >= 0 ; i--)
+		{
+			joueurs.get(i).getMain().addAll(paquet.piocher(2));
+			io.majJoueurGagneCartesAnonyme(joueurs.get(i).getNumero(), paquet.piocher(2));
 			paquet.retirer(2);
 		}
 		
@@ -308,12 +271,12 @@ public class Belote {
 		io.majAtoutPropose(carteProposee);	
 		
 		// premier tour de table pour voir qui prend l'atout
-		for (Joueur j : joueurs)
+		for (int i = 3 ; i >= 0 ; i--)
 		{
-			if (io.askPrendreAtout(j.getNumero()))
+			if (io.askPrendreAtout(i))
 			{
 				atout = carteProposee.getCouleur();
-				jAtout = j;
+				jAtout = joueurs.get(i);
 				break;
 			}
 		}
@@ -321,13 +284,13 @@ public class Belote {
 		// deuxieme tour de table si personne n'a pris l'atout
 		if (atout == null)
 		{
-			for (Joueur j : joueurs)
+			for (int i = 3 ; i >= 0 ; i--)
 			{
-				Couleur coul = io.askCouleurAtout(j.getNumero());
+				Couleur coul = io.askCouleurAtout(i);
 				if (coul != null)
 				{
 					atout = coul;
-					jAtout = j;
+					jAtout = joueurs.get(i);
 					break;
 				}
 			}
@@ -340,16 +303,17 @@ public class Belote {
 		
 		// on donne la carte au joueur qui l'a choisie
 		paquet.retirer();
-		jAtout.addCarteMain(carteProposee);
+		jAtout.getMain().add(carteProposee);
 		io.majJoueurGagneCarteAnonyme(jAtout.getNumero(), carteProposee);
 		
 		// on distribue le reste des cartes
-		for(Joueur j : joueurs) {
+		for (int i = 3 ; i >= 0 ; i--)
+		{
 			int nb = 3;
 			// 2 cartes a celui qui a prit l'atout
-			if (j == jAtout) nb = 2;
-			j.addCartesMain(paquet.piocher(nb));
-			io.majJoueurGagneCartesAnonyme(j.getNumero(), paquet.piocher(nb));
+			if (joueurs.get(i) == jAtout) nb = 2;
+			joueurs.get(i).getMain().addAll(paquet.piocher(nb));
+			io.majJoueurGagneCartesAnonyme(i, paquet.piocher(nb));
 			paquet.retirer(nb);
 		}
 				
@@ -365,7 +329,7 @@ public class Belote {
 		for (Joueur joueur : joueurs)
 		{
 			if (vainqueur == null || 
-				joueur.getNbPoints(atout) > vainqueur.getNbPoints(atout))
+				joueur.getNbPointsGagnes(atout) > vainqueur.getNbPointsGagnes(atout))
 				vainqueur = joueur;
 		}
 		int[] ret = new int[2];
@@ -377,7 +341,7 @@ public class Belote {
 	/**
 	 * Retourne la liste des noms des joueurs en place
 	 */
-	public ArrayList<String> getNomsJoueurs()
+	private ArrayList<String> getNomsJoueurs()
 	{
 		ArrayList<String> ret = new ArrayList<String>();
 		for (Joueur joueur : joueurs)

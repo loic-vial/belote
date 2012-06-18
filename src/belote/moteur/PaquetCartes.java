@@ -64,15 +64,4 @@ public class PaquetCartes extends ArrayList<Carte>
 	{
 		retirer(1);
 	}
-
-	/**
-	 * Represente textuellement le paquet de cartes.
-	 */
-	public String toString()
-	{
-		String retour = "";
-		for (Carte c : this)
-			retour += "" + c + "\n";
-		return retour;
-	}
 }

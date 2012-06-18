@@ -3,8 +3,8 @@ package belote.moteur;
 /**
  * Enumeration des differentes valeurs possibles d'une carte
  */
-public enum Valeur {
-
+public enum Valeur
+{
 	SEPT,
 	HUIT,
 	NEUF,
