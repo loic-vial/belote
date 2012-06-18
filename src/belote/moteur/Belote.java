@@ -19,7 +19,7 @@ public class Belote {
 	/**
 	 * Le paquet de carte.
 	 */
-	private Paquet paquet;
+	private PaquetCartes paquet;
 	
 	/**
 	 * La couleur de l'atout.
@@ -58,7 +58,7 @@ public class Belote {
 		joueurs = new ArrayList<Joueur>();
 		
 		// Creation du paquet
-		paquet = new Paquet();
+		paquet = new PaquetCartes();
 		
 		// Definition explicite de l'atout
 		atout = null;
@@ -272,12 +272,12 @@ public class Belote {
 		io.init();
 		for (Joueur j : joueurs)
 		{
-			paquet.getCartes().addAll(j.getMain());
-			paquet.getCartes().addAll(j.getCartesGagnees());
+			paquet.addAll(j.getMain());
+			paquet.addAll(j.getCartesGagnees());
 			j.getMain().clear();
 			j.getCartesGagnees().clear();
-			if (table.containsKey(j)) paquet.getCartes().add(table.get(j));
 		}
+		paquet.addAll(table.values());
 		table.clear();
 	}
 
