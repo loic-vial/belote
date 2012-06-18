@@ -1,0 +1,89 @@
+/*******************************************************************************
+/*
+/*                                    Belote
+/*
+/*
+/* Auteurs : Arnaud Le Bourblanc, Quentin Salmeron et Loïc Vial
+/*
+/*******************************************************************************
+
+
+	Ce projet avait premièrement comme but le développement d'une IHM (Interface 
+Homme Machine) pour le jeu de belote ainsi qu'une interface réseau pour dialoguer 
+avec l'IHM. Cependant, il est allé plus loin et c'est maintenant un jeu complet 
+intégrant un moteur en plus du coté "IHM" et du coté "réseau".
+	Ce projet a été proposé par M. Alain Thuaire de l'Université de Nice-Sophia 
+Antipolis dans le cadre du cours d'APO-Java.
+
+
+******* Lancement
+
+	3 executables "jar" sont inclus dans le dossier "jar" :
+	
+	- "Serveur.jar" est le serveur, autrement dit la table de jeu, c'est le 
+	  premier executable a lancer pour commencer une partie. 
+	  Une fois lancé, le serveur va attendre l'arrivée de 4 joueurs, puis la 
+	  partie va commencer.
+	  Le jeu tourne ensuite indéfiniment jusqu'a ce qu'un client se déconnecte, 
+	  puis si l'on veut recommencer une partie, il faut terminer manuellement le 
+	  processus et relancer l'executable.
+	  
+	- "Client.jar" est le client standard en mode "fenetre", il vous permet de 
+	  vous connecter au serveur et de jouer une partie sur l'IHM.
+	
+	- "ClientAleatoire.jar" est un client qui joue aleatoirement tous ses coups 
+	  (seulement des coups autorisés bien entendu), il a été développé pour faire 
+	  des tests pendant le développement.
+	  
+	  
+	Notes :
+	
+	- le placement des joueurs sur la table et la formation des equipes se font 
+	  en fonction de l'ordre de connexion des clients. En effet le premier 
+	  joueur qui viendra se placera au sud, le second a l'ouest, le troisieme au 
+	  nord et enfin le dernier a l'est.
+	 
+
+******* Personnalisation
+
+	Le fichier de configuration "res/ConfigBelote.xml" permet de modifier un 
+grand nombre de parametre dans le programme : 
+	- l'adresse IP et le port de connexion (par defaut "localhost" et 4242) ;
+	- votre nom de joueur (par defaut "Bob") ;
+	- l'image de fond (plusieurs images sont d'ailleurs fournies dans le dossier 
+	  "res") ;
+	- la taille de la fenetre ;
+	- la taille des cartes ;
+	- toutes les polices d'ecriture et les couleurs associées ;
+	- les configurations spécifiques au "sablier" de jeu (voir classe TempsG).
+	
+
+******* Jouabilité / Phases de jeu
+
+	Dans un premier temps, les cartes vont être distribuées à chacun des joueurs.
+Lorsque le choix de l'atout se fait, c'est le joueur sud qui a d'abord la parole, 
+ensuite viennent les autres dans le sens des aiguilles d'une montre (pour 
+l'instant ce n'est pas un comportement modifiable).
+	Ensuite, la partie commence. C'est le joueur sud qui pose le premier, puis 
+les autres suivent dans le sens INVERSE des aiguilles d'une montre cette fois ci.
+Par la suite, c'est le vainqueur de chaque pli qui commence.
+	Pour poser une carte, il vous suffit de cliquer dessus (pas de "drag & drop" 
+possible pour le moment).
+	Quand une partie se termine, une autre commence immédiatement. Les points 
+des équipes sont toujours cumulés.
+
+	Note : vous etes toujours placé en bas de l'écran, le paquet de cartes en 
+bas à gauche correspond à celui de votre équipe, et celui en haut à droite à 
+celui de l'équipe adverse.
+
+
+******* Conception / Développement
+
+	Le développement du logiciel s'appuie sur :
+	- le langage Java SE 6 ;
+	- l'IDE Eclipse ;
+	- la librairie Swing (composants graphiques) ;
+	- la librairie XStream (sérialisation XML) ;
+
+
+
